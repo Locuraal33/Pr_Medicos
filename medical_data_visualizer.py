@@ -10,12 +10,10 @@ df = pd.read_csv("medical_examination.csv")
 df['overweight'] = np.where((df['weight'] / ((df['height']/100)**2)) > 25, 1, 0)
 
 # Normalizar gluc y cholesterol
-
 df['gluc'] = np.where((df['gluc']) > 1, 1, 0)
 df['cholesterol'] = np.where((df['cholesterol']) > 1, 1, 0)
 
 # Crear el grafico 
-
 def draw_cat_plot():
 
     # Preparación de los datos
@@ -33,11 +31,40 @@ def draw_cat_plot():
     
     # Guardar la figura
     fig.savefig('catplot.png')
-    
     return fig
 
-df_cat = pd.melt(df, id_vars=['cardio'], value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+# Crear mapa de calor
+def draw_heat_map():
+
+    #Preparar los datos 
+    df_heat = df[
+    (df['ap_lo']<=df['ap_hi']) 
+    & (df['height']>=df['height'].quantile(0.025))
+    & (df['height']<=df['height'].quantile(0.975))
+    & (df['weight']>=df['weight'].quantile(0.025))
+    & (df['weight']<=df['weight'].quantile(0.975))
+    ]
+
+    # Calcular la matriz de correlacion
+    corr = df_heat.corr()
+
+    # Crear la mascara
+    mask = np.triu(np.ones_like(corr))
+
+    # Configurar la figura de matplotlib
+    fig, ax = plt.subplots()
+
+    # Dibujar con seaborn
+    ax = sns.heatmap(data = corr,
+    mask = mask,
+    annot = True,
+    fmt = '.1f',
+    robust = True,
+    linewidths = 0.5,
+    )
     
-print(df_cat)
-df_cat.info()
-print(df_cat.tail(10))
+    # Guardar la figura
+    fig.savefig('heatmap.png')
+    return fig
+
+draw_heat_map()
